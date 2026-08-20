@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://xn--tnkeboksen-d6a.dk/sitemap.xml

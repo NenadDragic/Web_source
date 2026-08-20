@@ -1,0 +1,182 @@
+/* ==========================================================================
+   dragic-playground.info — vejviser
+   Paletten er dragic.com's, så de to sider føles beslægtede.
+   Skrift: Cormorant Garamond hvis den er tilgængelig lokalt, ellers Georgia.
+           Ingen eksterne kald — se noten nederst i filen.
+   ========================================================================== */
+
+:root {
+  --papir:   #f7f5f1;
+  --kort:    #f0ede8;
+  --blaek:   #1a1a1a;
+  --tekst:   #333333;
+  --daempet: #777777;
+  --svag:    #aaaaaa;
+  --linje:   #e8e4de;
+
+  --serif: "Cormorant Garamond", Georgia, "Iowan Old Style", Palatino, serif;
+  --sans:  system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100svh;
+  background: var(--papir);
+  color: var(--blaek);
+  font-family: var(--serif);
+  font-size: 1.12rem;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+}
+
+main {
+  width: 100%;
+  max-width: 560px;
+}
+
+/* Toningen er en tilføjelse, ikke en forudsætning: indholdet er synligt
+   som udgangspunkt, og animationen lægges kun oven på hvis brugeren
+   ikke har bedt om mindre bevægelse. Så kan teksten aldrig hænge fast
+   på opacity: 0, hvis animationen af en eller anden grund ikke kører. */
+@media (prefers-reduced-motion: no-preference) {
+  main { animation: toning 1.2s ease both; }
+  @keyframes toning {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: none; }
+  }
+}
+
+a { color: inherit; }
+
+:focus-visible { outline: 2px solid var(--blaek); outline-offset: 4px; }
+
+/* --- Toppen -------------------------------------------------------------- */
+
+.mrk {
+  font-family: var(--sans);
+  font-size: .72rem;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--svag);
+  margin: 0 0 3rem;
+  text-align: center;
+}
+
+h1 {
+  font-size: 2.5rem;
+  font-weight: 400;
+  letter-spacing: .02em;
+  line-height: 1.2;
+  margin: 0 0 .3rem;
+}
+
+.en-linje {
+  font-style: italic;
+  color: var(--daempet);
+  font-size: 1.15rem;
+  margin: 0 0 2.4rem;
+}
+
+.streg {
+  width: 40px;
+  height: 1px;
+  background: #cccccc;
+  margin: 0 0 2.4rem;
+}
+
+p { margin: 0 0 1.3rem; color: var(--tekst); }
+p.en { color: var(--daempet); font-style: italic; font-size: 1.02rem; }
+
+.led { margin-bottom: 2.2rem; }
+
+/* --- Kortene ------------------------------------------------------------- */
+
+.kort-net {
+  display: grid;
+  gap: 1px;
+  background: var(--linje);
+  border: 1px solid var(--linje);
+  margin-bottom: 3rem;
+}
+
+.kort {
+  background: var(--papir);
+  padding: 1.6rem 1.5rem;
+  text-decoration: none;
+  display: block;
+  position: relative;
+  transition: background .2s;
+}
+
+.kort::after {
+  content: "\2192";
+  position: absolute;
+  right: 1.5rem;
+  top: 1.7rem;
+  color: #cccccc;
+  transition: color .2s, transform .2s;
+}
+
+.kort:hover { background: var(--kort); }
+.kort:hover::after { color: var(--daempet); transform: translateX(3px); }
+
+.kort__mrk {
+  display: block;
+  font-family: var(--sans);
+  font-size: .66rem;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  color: var(--svag);
+  margin-bottom: .25rem;
+}
+
+.kort__navn {
+  display: block;
+  font-size: 1.2rem;
+  line-height: 1.3;
+  padding-right: 2rem;
+}
+
+.kort__om {
+  display: block;
+  font-size: .92rem;
+  line-height: 1.55;
+  color: var(--daempet);
+  margin-top: .3rem;
+}
+
+.kort__om em { font-style: italic; color: var(--svag); }
+
+/* --- Bunden -------------------------------------------------------------- */
+
+footer {
+  font-family: var(--sans);
+  font-size: .7rem;
+  letter-spacing: .18em;
+  color: var(--svag);
+  text-align: center;
+}
+
+@media (max-width: 34rem) {
+  body { padding: 3rem 1.4rem; }
+  h1 { font-size: 2rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+/* Note: når Cormorant Garamond en dag self-hostes til dragic.com, lægges
+   @font-face her, og siden opgraderer sig selv uden andre ændringer. */

@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FR24 Dashboard — Dragic.com</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background-color: #f7f5f1;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      color: #1a1a1a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 4rem 2rem 6rem;
+    }
+    main { max-width: 960px; width: 100%; animation: fadein 1.4s ease both; }
+    @keyframes fadein {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .site-name {
+      font-size: 0.75rem; font-weight: 300; letter-spacing: 0.3em;
+      text-transform: uppercase; color: #999; margin-bottom: 3.5rem; text-align: center;
+    }
+    .site-name a {
+      color: inherit; text-decoration: none;
+      transition: color 0.2s;
+    }
+    .site-name a:hover { color: #555; }
+    h1 { font-size: 2.6rem; font-weight: 300; letter-spacing: 0.03em; margin-bottom: 0.4rem; line-height: 1.2; }
+    .tagline { font-size: 1.05rem; font-style: italic; font-weight: 300; color: #777; margin-bottom: 2.8rem; }
+    .divider { width: 40px; height: 1px; background: #ccc; margin: 0 0 2.8rem 0; }
+    .meta {
+      font-size: 0.75rem; font-weight: 300; letter-spacing: 0.15em;
+      text-transform: uppercase; color: #aaa; margin-bottom: 2rem;
+      display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+    }
+    .live-dot {
+      display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+      background: #6aab6a; margin-right: 0.3rem;
+      vertical-align: middle; position: relative; top: -1px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.4; transform: scale(0.7); }
+    }
+    .section-label {
+      font-size: 0.7rem; font-weight: 300; letter-spacing: 0.25em;
+      text-transform: uppercase; color: #999; margin: 2.5rem 0 1rem 0;
+      border-bottom: 1px solid #e8e4de; padding-bottom: 0.6rem;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1px; background: #e8e4de;
+      border: 1px solid #e8e4de;
+      margin-bottom: 0.1rem;
+    }
+    .card {
+      background: #f7f5f1; padding: 1.2rem 1rem;
+      transition: background 0.15s;
+    }
+    .card:hover { background: #f0ede8; }
+    .card .label {
+      font-size: 0.65rem; font-weight: 300; letter-spacing: 0.22em;
+      text-transform: uppercase; color: #aaa; margin-bottom: 0.4rem;
+    }
+    .card .value {
+      font-size: 1.7rem; font-weight: 300; color: #1a1a1a; line-height: 1.1;
+    }
+    .card .value.muted { color: #888; font-size: 1.1rem; }
+    .card .value.warn  { color: #c07a2a; font-size: 1.1rem; }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { border-bottom: 1px solid #ccc; }
+    thead th {
+      font-size: 0.7rem; font-weight: 300; letter-spacing: 0.25em;
+      text-transform: uppercase; color: #999; padding: 0 0.5rem 0.9rem; text-align: left;
+    }
+    thead th:first-child { padding-left: 0; }
+    thead th.right { text-align: right; }
+    tbody tr { border-bottom: 1px solid #e8e4de; transition: background 0.15s; }
+    tbody tr:hover { background: #f0ede8; }
+    tbody td {
+      font-size: 1.0rem; font-weight: 300; line-height: 1.5;
+      padding: 0.75rem 0.5rem; color: #333; vertical-align: top;
+      white-space: nowrap;
+    }
+    tbody td:first-child { padding-left: 0; color: #999; font-size: 0.8rem; letter-spacing: 0.1em; }
+    tbody td.right { text-align: right; }
+    tbody td.dim { color: #999; font-size: 0.85rem; }
+    tbody td.empty { text-align: center; color: #bbb; padding: 2rem; font-style: italic; }
+    .status-ok    { color: #888; }
+    .status-alarm { color: #b94a48; }
+    .map-link {
+      font-size: 0.72rem; font-weight: 300; letter-spacing: 0.18em;
+      text-transform: uppercase; color: #1a1a1a; text-decoration: none;
+      border-bottom: 1px solid #bbb; padding-bottom: 1px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .map-link:hover { color: #555; border-color: #555; }
+    footer {
+      margin-top: 5rem; font-size: 0.7rem; font-weight: 300;
+      letter-spacing: 0.18em; color: #bbb; text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="site-name"><a href="index.html">Dragic.com</a></p>
+    <h1>FR24 Dashboard</h1>
+    <p class="tagline">Live FlightRadar24 feed — T-ESTA36</p>
+    <div class="divider"></div>
+    <p class="meta">
+      <span><span class="live-dot"></span><span class="status-ok">ONLINE</span></span>
+      <span>10.0.0.6:8754</span>
+      <span>Generated: 20. Aug 2026  10:21:21</span>
+      &nbsp;·&nbsp; <a href="fr24_map.html" class="map-link">Live map →</a>
+    </p>
+
+    <div class="section-label">Live — aircraft in the air</div>
+    <div class="cards">
+      <div class="card">
+        <div class="label">Aircraft now</div>
+        <div class="value">33</div>
+      </div>
+      <div class="card">
+        <div class="label">ADS-B tracked</div>
+        <div class="value">25</div>
+      </div>
+      <div class="card">
+        <div class="label">Non-ADS-B (Mode S)</div>
+        <div class="value muted">8</div>
+      </div>
+      <div class="card">
+        <div class="label">Uploaded to FR24</div>
+        <div class="value muted">33</div>
+      </div>
+    </div>
+
+    <div class="section-label">Since last restart</div>
+    <div class="cards">
+      <div class="card">
+        <div class="label">Messages received</div>
+        <div class="value muted">5.717.569</div>
+      </div>
+      <div class="card">
+        <div class="label">Uptime</div>
+        <div class="value muted">8h 21min</div>
+      </div>
+      <div class="card">
+        <div class="label">Receiver online since</div>
+        <div class="value muted">2026-08-20 01:30:54</div>
+      </div>
+      <div class="card">
+        <div class="label">Global timeouts</div>
+        <div class="value muted">4</div>
+      </div>
+      <div class="card">
+        <div class="label">Receiver type</div>
+        <div class="value muted">DVBT</div>
+      </div>
+    </div>
+
+    <div class="section-label">Flight list &nbsp;(33)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>ICAO</th>
+          <th>Callsign</th>
+          <th class="right">Altitude</th>
+          <th class="right">Speed</th>
+          <th class="right">Heading</th>
+          <th class="right">Squawk</th>
+          <th class="right">Lat</th>
+          <th class="right">Lon</th>
+        </tr>
+      </thead>
+      <tbody>
+            <tr>
+              <td>4BB0F9</td>
+              <td>THY2JS</td>
+              <td class="right">41.000 ft</td>
+              <td class="right">510 kt</td>
+              <td class="right">↘ 133°</td>
+              <td class="right">7670</td>
+              <td class="right dim">56.5300</td>
+              <td class="right dim">9.8170</td>
+            </tr>
+            <tr>
+              <td>4D2410</td>
+              <td>EWG1JA</td>
+              <td class="right">39.000 ft</td>
+              <td class="right">488 kt</td>
+              <td class="right">↗ 33°</td>
+              <td class="right">1000</td>
+              <td class="right dim">55.2400</td>
+              <td class="right dim">10.5700</td>
+            </tr>
+            <tr>
+              <td>4CAFCC</td>
+              <td>SAS404</td>
+              <td class="right">39.000 ft</td>
+              <td class="right">492 kt</td>
+              <td class="right">↗ 40°</td>
+              <td class="right">2514</td>
+              <td class="right dim">57.0600</td>
+              <td class="right dim">14.9400</td>
+            </tr>
+            <tr>
+              <td>4CAD92</td>
+              <td>SAS41K</td>
+              <td class="right">38.000 ft</td>
+              <td class="right">427 kt</td>
+              <td class="right">↙ 219°</td>
+              <td class="right">0261</td>
+              <td class="right dim">58.0300</td>
+              <td class="right dim">15.2600</td>
+            </tr>
+            <tr>
+              <td>47878D</td>
+              <td>NOZ3JH</td>
+              <td class="right">38.000 ft</td>
+              <td class="right">478 kt</td>
+              <td class="right">↑ 346°</td>
+              <td class="right">7265</td>
+              <td class="right dim">55.8100</td>
+              <td class="right dim">12.8700</td>
+            </tr>
+            <tr>
+              <td>4ACA85</td>
+              <td>NSZ2620</td>
+              <td class="right">38.000 ft</td>
+              <td class="right">432 kt</td>
+              <td class="right">↓ 178°</td>
+              <td class="right">1000</td>
+              <td class="right dim">54.8600</td>
+              <td class="right dim">14.1100</td>
+            </tr>
+            <tr>
+              <td>484FDE</td>
+              <td>KLM78W</td>
+              <td class="right">38.000 ft</td>
+              <td class="right">432 kt</td>
+              <td class="right">↙ 219°</td>
+              <td class="right">1000</td>
+              <td class="right dim">56.3200</td>
+              <td class="right dim">12.2800</td>
+            </tr>
+            <tr>
+              <td>4CA73F</td>
+              <td>RYR7HJ</td>
+              <td class="right">38.000 ft</td>
+              <td class="right">423 kt</td>
+              <td class="right">↙ 220°</td>
+              <td class="right">1000</td>
+              <td class="right dim">56.8200</td>
+              <td class="right dim">12.9000</td>
+            </tr>
+            <tr>
+              <td>4ACAA5</td>
+              <td>SAS4703</td>
+              <td class="right">37.025 ft</td>
+              <td class="right">436 kt</td>
+              <td class="right">↓ 188°</td>
+              <td class="right">0736</td>
+              <td class="right dim">—</td>
+              <td class="right dim">—</td>
+            </tr>
+            <tr>
+              <td>47A185</td>
+              <td>NSZ3DA</td>
+              <td class="right">37.000 ft</td>
+              <td class="right">490 kt</td>
+              <td class="right">↑ 20°</td>
+              <td class="right">1000</td>
+              <td class="right dim">55.5000</td>
+              <td class="right dim">15.4100</td>
+            </tr>
+            <tr>
+              <td>4CAD42</td>
+              <td>SAS106</td>
+              <td class="right">36.875 ft</td>
+              <td class="right">490 kt</td>
+              <td class="right">↗ 36°</td>
+              <td class="right">0201</td>
+              <td class="right dim">—</td>
+              <td class="right dim">—</td>
+            </tr>
+            <tr>
+              <td>4AC9E2</td>
+              <td>SAS63Z</td>
+              <td class="right">36.000 ft</td>
+              <td class="right">414 kt</td>
+              <td class="right">↓ 195°</td>
+              <td class="right">1000</td>
+              <td class="right dim">55.0900</td>
+              <td class="right dim">15.0400</td>
+            </tr>
+            <tr>
+              <td>47947C</td>
+              <td>NSZ5602</td>
+              <td class="right">36.000 ft</td>
+              <td class="right">491 kt</td>
+              <td class="right">↑ 17°</td>
+              <td class="right">1000</td>
+              <td class="right dim">56.0400</td>
+              <td class="right dim">16.1600</td>
+            </tr>
+            <tr>
+              <td>502D7B</td>
+              <td>ASL57Z</td>
+              <td class="right">35.300 ft</td>
+              <td class="right">420 kt</td>
+              <td class="right">↓ 160°</td>
+              <td class="right">4512</td>
+              <td class="right dim">—</td>
+              <td class="right dim">—</td>
+            </tr>
+            <tr>
+              <td>47A7A8</td>
+              <td>NOZ4BJ</td>
+              <td class="right">35.000 ft</td>
+              <td class="right">458 kt</td>
+              <td class="right">↘ 153°</td>
+              <td class="right">6511</td>
+              <td class="right dim">57.5300</td>
+              <td class="right dim">13.9500</td>
+            </tr>
+            <tr>
+              <td>3C64A1</td>
+              <td>DLH9WF</td>
+              <td class="right">35.000 ft</td>
+              <td class="right">507 kt</td>
+              <td class="right">↑ 17°</td>
+              <td class="right">1000</td>
+              <td class="right dim">55.4900</td>
+              <td class="right dim">15.8300</td>
+            </tr>
+            <tr>
+              <td>7805DD</td>
+              <td>CKK203</td>
+              <td class="right">34.000 ft</td>
+              <td class="right">—</td>
+              <td class="right">—</td>
+              <td class="right">3526</td>
+              <td class="right dim">—</td>
+              <td class="right dim">—</td>
+            </tr>
+            <tr>
+              <td>4852F4</td>
+              <td>KLM52R</td>
+              <td class="right">34.000 ft</td>
+              <td class="right">397 kt</td>
+              <td class="right">↙ 214°</td>
+              <td class="right">1000</td>
+              <td class="right dim">56.0500</td>
+              <td class="right dim">10.6100</td>
+            </tr>
+            <tr>
+              <td>484559</td>
+              <td>KLM31K</td>
+              <td class="right">32.275 ft</td>
+              <td class="right">520 kt</td>
+              <td class="right">↗ 60°</td>
+              <td class="right">0157</td>
+              <td class="right dim">—</td>
+              <td class="right dim">—</td>
+            </tr>
+            <tr>
+              <td>459D6E</td>
+              <td>GRL781</td>
+              <td class="right">30.600 ft</td>
+              <td class="right">422 kt</td>
+              <td class="right">↖ 318°</td>
+              <td class="right">2562</td>
+              <td class="right dim">56.8900</td>
+              <td class="right dim">10.0600</td>
+            </tr>
+            <tr>
+              <td>4D24AD</td>
+              <td>WZZ24MJ</td>
+              <td class="right">29.600 ft</td>
+              <td class="right">387 kt</td>
+              <td class="right">← 262°</td>
+              <td class="right">1000</td>
+              <td class="right dim">55.9300</td>
+              <td class="right dim">11.7500</td>
+            </tr>
+            <tr>
+              <td>4AC9EC</td>
+              <td>SAS452</td>
+              <td class="right">23.900 ft</td>
+              <td class="right">382 kt</td>
+              <td class="right">↑ 349°</td>
+              <td class="right">0252</td>
+              <td class="right dim">56.0400</td>
+              <td class="right dim">12.2800</td>
+            </tr>
+            <tr>
+              <td>3C6745</td>
+              <td>DLH6EN</td>
+              <td class="right">22.250 ft</td>
+              <td class="right">356 kt</td>
+              <td class="right">↙ 215°</td>
+              <td class="right">0737</td>
+              <td class="right dim">—</td>
+              <td class="right dim">—</td>
+            </tr>
+            <tr>
+              <td>45B4EF</td>
+              <td>MMD6059</td>
+              <td class="right">22.000 ft</td>
+              <td class="right">422 kt</td>
+              <td class="right">↑ 7°</td>
+              <td class="right">0430</td>
+              <td class="right dim">56.2400</td>
+              <td class="right dim">12.2400</td>
+            </tr>
+            <tr>
+              <td>4ACAA1</td>
+              <td>SAS48P</td>
+              <td class="right">21.000 ft</td>
+              <td class="right">339 kt</td>
+              <td class="right">↓ 172°</td>
+              <td class="right">0202</td>
+              <td class="right dim">57.0700</td>
+              <td class="right dim">12.3500</td>
+            </tr>
+            <tr>
+              <td>4ACA7A</td>
+              <td>SAS1208</td>
+              <td class="right">20.725 ft</td>
+              <td class="right">411 kt</td>
+              <td class="right">↘ 127°</td>
+              <td class="right">0240</td>
+              <td class="right dim">56.2500</td>
+              <td class="right dim">11.5000</td>
+            </tr>
+            <tr>
+              <td>C01729</td>
+              <td>ACA828</td>
+              <td class="right">20.375 ft</td>
+              <td class="right">403 kt</td>
+              <td class="right">↘ 135°</td>
+              <td class="right">1231</td>
+              <td class="right dim">56.0900</td>
+              <td class="right dim">10.8800</td>
+            </tr>
+            <tr>
+              <td>4B3944</td>
+              <td>HBVRW</td>
+              <td class="right">17.450 ft</td>
+              <td class="right">415 kt</td>
+              <td class="right">↑ 22°</td>
+              <td class="right">3002</td>
+              <td class="right dim">55.5500</td>
+              <td class="right dim">12.3000</td>
+            </tr>
+            <tr>
+              <td>43F840</td>
+              <td>2VEGA</td>
+              <td class="right">11.025 ft</td>
+              <td class="right">266 kt</td>
+              <td class="right">↓ 200°</td>
+              <td class="right">1271</td>
+              <td class="right dim">56.1600</td>
+              <td class="right dim">12.5900</td>
+            </tr>
+            <tr>
+              <td>4D244B</td>
+              <td>RYR6924</td>
+              <td class="right">3.075 ft</td>
+              <td class="right">205 kt</td>
+              <td class="right">→ 112°</td>
+              <td class="right">6234</td>
+              <td class="right dim">55.7700</td>
+              <td class="right dim">12.8100</td>
+            </tr>
+            <tr>
+              <td>4AB586</td>
+              <td>SEMLF</td>
+              <td class="right">1.750 ft</td>
+              <td class="right">110 kt</td>
+              <td class="right">↓ 173°</td>
+              <td class="right">7000</td>
+              <td class="right dim">56.2300</td>
+              <td class="right dim">12.8500</td>
+            </tr>
+            <tr>
+              <td>3F495A</td>
+              <td>GAF676</td>
+              <td class="right">1.700 ft</td>
+              <td class="right">—</td>
+              <td class="right">—</td>
+              <td class="right">0011</td>
+              <td class="right dim">—</td>
+              <td class="right dim">—</td>
+            </tr>
+            <tr>
+              <td>4787A0</td>
+              <td>—</td>
+              <td class="right">—</td>
+              <td class="right">—</td>
+              <td class="right">—</td>
+              <td class="right">0000</td>
+              <td class="right dim">—</td>
+              <td class="right dim">—</td>
+            </tr></tbody>
+    </table>
+  </main>
+  <footer>© 2026 Nenad Ahlstrøm Dragic</footer>
+</body>
+</html>

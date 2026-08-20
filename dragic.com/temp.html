@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="refresh" content="120">
+  <title>Weather Dashboard — Dragic.com</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: #f7f5f1;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      color: #1a1a1a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 4rem 2rem 6rem;
+    }
+
+    main {
+      max-width: 1100px;
+      width: 100%;
+      animation: fadein 1.4s ease both;
+    }
+
+    @keyframes fadein {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .site-name {
+      display: block;
+      font-size: 0.75rem; font-weight: 300; letter-spacing: 0.3em;
+      text-transform: uppercase; color: #999; margin-bottom: 3.5rem; text-align: center;
+      text-decoration: none; transition: color 0.2s;
+    }
+    .site-name:hover { color: #666; }
+
+    h1 {
+      font-size: 2.6rem; font-weight: 300; letter-spacing: 0.03em;
+      margin-bottom: 0.4rem; line-height: 1.2;
+    }
+
+    .tagline {
+      font-size: 1.05rem; font-style: italic; font-weight: 300;
+      color: #777; margin-bottom: 2.8rem;
+    }
+
+    .divider { width: 40px; height: 1px; background: #ccc; margin: 0 0 2.8rem 0; }
+
+    .meta {
+      font-size: 0.75rem; font-weight: 300; letter-spacing: 0.15em;
+      text-transform: uppercase; color: #aaa; margin-bottom: 2.5rem;
+      display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+    }
+
+    .reload-indicator {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      margin-left: auto;
+    }
+
+    .reload-label {
+      font-size: 0.68rem; font-weight: 300; letter-spacing: 0.2em;
+      text-transform: uppercase; color: #bbb;
+    }
+
+    .countdown {
+      font-size: 0.75rem; font-weight: 300; letter-spacing: 0.1em;
+      color: #aaa; font-variant-numeric: tabular-nums;
+      min-width: 2.2rem; text-align: right;
+    }
+
+    .ring-wrap { position: relative; width: 18px; height: 18px; }
+    .ring-bg { fill: none; stroke: #e8e4de; stroke-width: 2; }
+    .ring-progress {
+      fill: none; stroke: #bbb; stroke-width: 2;
+      stroke-linecap: round;
+      transform-origin: 50% 50%;
+      transform: rotate(-90deg);
+      transition: stroke-dashoffset 1s linear, stroke 0.5s;
+    }
+    .ring-progress.urgent { stroke: #c07a2a; }
+
+    .section-label {
+      font-size: 0.68rem; font-weight: 300; letter-spacing: 0.3em;
+      text-transform: uppercase; color: #bbb;
+      margin: 3rem 0 1.2rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid #e8e4de;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: #e8e4de;
+      border: 1px solid #e8e4de;
+    }
+
+    .chart-card {
+      background: #f7f5f1;
+      padding: 1.4rem 1.4rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+      transition: background 0.15s;
+    }
+
+    .chart-card:hover { background: #f0ede8; }
+
+    .chart-title {
+      font-size: 0.7rem; font-weight: 300; letter-spacing: 0.25em;
+      text-transform: uppercase; color: #999;
+    }
+
+    .chart-card img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    @media (max-width: 600px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    footer {
+      margin-top: 5rem; font-size: 0.7rem; font-weight: 300;
+      letter-spacing: 0.18em; color: #bbb; text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <a href="index.html" class="site-name">Dragic.com</a>
+    <h1>Weather Dashboard</h1>
+    <p class="tagline">Temperature &amp; humidity — Hornbæk</p>
+    <div class="divider"></div>
+
+    <p class="meta">
+      <span id="generated">—</span>
+      <span class="reload-indicator">
+        <span class="reload-label">Reload in</span>
+        <span class="countdown" id="countdown">2:00</span>
+        <span class="ring-wrap">
+          <svg viewBox="0 0 18 18" width="18" height="18">
+            <circle class="ring-bg" cx="9" cy="9" r="7"/>
+            <circle class="ring-progress" id="ring" cx="9" cy="9" r="7"/>
+          </svg>
+        </span>
+      </span>
+    </p>
+
+    <p class="section-label">Day</p>
+    <div class="grid-2">
+      <div class="chart-card">
+        <span class="chart-title">Temperature</span>
+        <img src="tfa/daytemp.png" alt="Day temperature">
+      </div>
+      <div class="chart-card">
+        <span class="chart-title">Humidity</span>
+        <img src="tfa/dayhumidity.png" alt="Day humidity">
+      </div>
+    </div>
+
+    <p class="section-label">Week</p>
+    <div class="grid-2">
+      <div class="chart-card">
+        <span class="chart-title">Temperature</span>
+        <img src="tfa/weektemp.png" alt="Week temperature">
+      </div>
+      <div class="chart-card">
+        <span class="chart-title">Humidity</span>
+        <img src="tfa/weekhumidity.png" alt="Week humidity">
+      </div>
+    </div>
+
+    <p class="section-label">Month</p>
+    <div class="grid-2">
+      <div class="chart-card">
+        <span class="chart-title">Temperature</span>
+        <img src="tfa/monthtemp.png" alt="Month temperature">
+      </div>
+      <div class="chart-card">
+        <span class="chart-title">Humidity</span>
+        <img src="tfa/monthhumidity.png" alt="Month humidity">
+      </div>
+    </div>
+
+    <p class="section-label">Year</p>
+    <div class="grid-2">
+      <div class="chart-card">
+        <span class="chart-title">Temperature</span>
+        <img src="tfa/yeartemp.png" alt="Year temperature">
+      </div>
+      <div class="chart-card">
+        <span class="chart-title">Humidity</span>
+        <img src="tfa/yearhumidity.png" alt="Year humidity">
+      </div>
+    </div>
+
+  </main>
+  <footer>© 2026 Nenad Ahlstrøm Dragic</footer>
+
+  <script>
+    // Show generated timestamp
+    const now = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    document.getElementById('generated').textContent =
+      'Generated: ' +
+      now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate()) +
+      ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+
+    // Countdown ring
+    const RELOAD_SECONDS = 120;
+    const circumference = 2 * Math.PI * 7;
+    const ring = document.getElementById('ring');
+    const countdown = document.getElementById('countdown');
+    ring.style.strokeDasharray = circumference;
+    ring.style.strokeDashoffset = 0;
+
+    let remaining = RELOAD_SECONDS;
+    setInterval(() => {
+      remaining--;
+      const m = Math.floor(remaining / 60);
+      const s = remaining % 60;
+      countdown.textContent = m + ':' + String(s).padStart(2, '0');
+      ring.style.strokeDashoffset = circumference * (1 - remaining / RELOAD_SECONDS);
+      if (remaining <= 15) {
+        ring.classList.add('urgent');
+        countdown.style.color = '#c07a2a';
+      }
+      if (remaining <= 0) location.reload();
+    }, 1000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="img" aria-label="Tænkeboksen">
+  <title>Tænkeboksen</title>
+  <mask id="tb-boks">
+    <rect x="0" y="0" width="24" height="24" fill="#fff"/>
+    <g stroke="#000" stroke-width="2.4" stroke-linecap="round" fill="none">
+      <path d="M6.6 10.4V6.6h3.8M17.4 10.4V6.6h-3.8M6.6 13.6v3.8h3.8M17.4 13.6v3.8h-3.8"/>
+    </g>
+  </mask>
+  <rect x="1.5" y="1.5" width="21" height="21" rx="5.5" fill="#1F3FD1" mask="url(#tb-boks)"/>
+</svg>
