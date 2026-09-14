@@ -13,6 +13,17 @@
 # Exit 0 = alt OK, 1 = advarsel, 2 = kritisk
 
 set -uo pipefail
+# --- Dependency check (auto-inserted) ---
+_d="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+while [ "$_d" != "/" ] && [ ! -f "$_d/lib/require_tools.sh" ]; do _d="$(dirname "$_d")"; done
+if [ ! -f "$_d/lib/require_tools.sh" ]; then
+    echo "FEJL: Kunne ikke finde lib/require_tools.sh (delt dependency-checker)." >&2
+    exit 1
+fi
+# shellcheck source=/dev/null
+source "$_d/lib/require_tools.sh"
+unset _d
+require_tools "dig:dnsutils"
 
 DOMAINS=(
   ahlstrom-itsec.com
@@ -42,8 +53,6 @@ declare -A EXPECTED_DS=(
   [taenkeboksen.dk]=2
   [xn--tnkeboksen-d6a.dk]=2
 )
-
-command -v dig >/dev/null 2>&1 || { echo "FEJL: dig mangler. Installér bind9-dnsutils."; exit 2; }
 
 status=0
 note() { printf '  %-9s %s\n' "$1" "$2"; }
