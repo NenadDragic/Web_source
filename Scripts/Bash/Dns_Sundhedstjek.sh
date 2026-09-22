@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# dns-sundhedstjek.sh — overvåger DNSSEC, DMARC og CAA på syv domæner
+# Dns_Sundhedstjek.sh — overvåger DNSSEC, DMARC og CAA på syv domæner
 #
 # Vigtigst: advarer hvis DNSSEC-signaturer er ved at udløbe.
 # e-studio gensignerer automatisk, men roterer IKKE KSK'er. Stopper deres
