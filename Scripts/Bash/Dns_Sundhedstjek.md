@@ -79,7 +79,7 @@ After all domains are processed, prints an overall result line based on the wors
 
 - Not destructive: the script only queries DNS via `dig`; it makes no changes to any system or zone.
 - Safe to re-run any time; each run is independent and stateless (no cache/state file between runs).
-- Output messages (including the "KRITISK"/"ADVARSEL"/"ok"/"info" labels and summary) are in Danish; only this documentation and the code comments are bilingual.
+- Output messages (including the "CRITICAL"/"WARNING"/"ok"/"info" labels and summary) are in English.
 - Hardcoded values: the domain list, the resolver (`1.1.1.1`), all thresholds (`WARN_DAYS`, `CRIT_DAYS`, `FRESH_TTL`), the expected CA, and the per-domain expected DS counts. Adding/removing a domain requires editing both `DOMAINS` and `EXPECTED_DS`.
 - Relies on parsing `dig`'s plain-text output (e.g. RRSIG expiration field position, `status:` field in the header) — a change in `dig`/BIND output formatting could silently break parsing.
 - Uses `set -uo pipefail` but not `-e`; individual command failures inside the loop are handled explicitly via checks rather than aborting the whole script.
