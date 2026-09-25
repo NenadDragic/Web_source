@@ -1,33 +1,33 @@
 #!/usr/bin/env bash
-# Dns_Sundhedstjek_html.sh — turns the output of Dns_Sundhedstjek.sh into an HTML report
+# Dns_Sundhedstjek_html.sh — turns the output of Sundhedstjech.sh into an HTML report
 # in the same style as the other status pages under dragic.com (e.g. GPS_Status_Rapport.html):
 # cream background, Cormorant Garamond, quiet grey/red/amber status colours.
 #
-# Dns_Sundhedstjek.sh now prints in English too (labels "ok"/"WARNING"/"CRITICAL"/"info",
-# "RESULT: ...", etc.) — this script parses that output directly.
+# Accepts both the Danish and the English output format of the check script:
+#   header  "DNS-sundhedstjek — ..."  or  "DNS health check — ..."
+#   labels  ok / ADVARSEL|WARNING / KRITISK|CRITICAL / info  (case-insensitive)
+# The overall result is derived from the rows themselves, so it does not depend
+# on a particular "RESULT:"/"RESULTAT:" line.
 #
 # Usage:
-#   ./Dns_Sundhedstjek_html.sh                 runs Dns_Sundhedstjek.sh and generates the HTML
-#   ./Dns_Sundhedstjek_html.sh report.txt       converts an existing text report (e.g. sample.txt)
+#   ./Dns_Sundhedstjek_html.sh report.txt       converts an existing text report
+#   ./Dns_Sundhedstjek_html.sh                  runs Sundhedstjech.sh and converts its output
 #
-# Output: $OUTFILE (default: dragic.com/DNSSEC/index.html in this repo)
-# Exit:   0 = all OK, 1 = warnings, 2 = critical, 3 = result could not be parsed
-#
-# Run daily via cron, right after Dns_Sundhedstjek.sh:
-#   0 7 * * *  /path/to/Dns_Sundhedstjek_html.sh >> /var/log/dns-tjek-html.log 2>&1
+# Output: $OUTFILE (default: index.html next to this script)
+# Exit:   0 = all OK, 1 = warnings, 2 = critical, 3 = no rows could be parsed
 
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-OUTFILE="${OUTFILE:-$SCRIPT_DIR/../../dragic.com/DNSSEC/index.html}"
+OUTFILE="${OUTFILE:-$SCRIPT_DIR/index.html}"
 
 if [ $# -ge 1 ]; then
   input_file="$1"
-  [ -f "$input_file" ] || { echo "ERROR: $input_file does not exist." >&2; exit 1; }
+  [ -f "$input_file" ] || { echo "ERROR: $input_file does not exist." >&2; exit 3; }
   report="$(cat "$input_file")"
 else
-  check_script="$SCRIPT_DIR/Dns_Sundhedstjek.sh"
-  [ -f "$check_script" ] || { echo "ERROR: can't find Dns_Sundhedstjek.sh next to this script." >&2; exit 1; }
+  check_script="$SCRIPT_DIR/Sundhedstjech.sh"
+  [ -f "$check_script" ] || { echo "ERROR: can't find Sundhedstjech.sh next to this script." >&2; exit 3; }
   report="$(bash "$check_script")"
 fi
 
@@ -39,19 +39,19 @@ html_escape() {
   printf '%s' "$s"
 }
 
-# --- Parse the text from Dns_Sundhedstjek.sh -----------------------------------
-# Line format (see note()/echo in Dns_Sundhedstjek.sh):
+# --- Parse the text report -------------------------------------------------------
+# Line format:
 #   "--- domain"                      new section
-#   "  <label>   text"                status line (label = ok/WARNING/CRITICAL/info)
-#   "              text"              continuation of the previous status line (blank label)
-#   ""                                 separates sections — resets the "current domain"
+#   "  <label>   text"                status line
+#   "              text"              continuation of the previous status line
+#   ""                                separates sections — resets the "current domain"
 declare -a ROW_DOMAIN=() ROW_STATUS=() ROW_TEXT=()
 current_domain="General"
 header_line=""
 resolver_line=""
-result_line=""
 
 while IFS= read -r line; do
+  line="${line%$'\r'}"
   case "$line" in
     "")
       current_domain="General"
@@ -64,7 +64,7 @@ while IFS= read -r line; do
     "="*)
       continue
       ;;
-    "DNS health check"*)
+    "DNS health check"*|"DNS-sundhedstjek"*|"DNS-Sundhedstjek"*)
       header_line="$line"
       continue
       ;;
@@ -72,8 +72,7 @@ while IFS= read -r line; do
       resolver_line="$line"
       continue
       ;;
-    "RESULT:"*)
-      result_line="${line#RESULT: }"
+    "RESULT"*|"RESULTAT"*|"Resultat"*|"SAMLET"*|"Samlet"*)
       continue
       ;;
   esac
@@ -83,38 +82,49 @@ while IFS= read -r line; do
 
   if [ -n "$rest" ] && [ "${rest:0:1}" != " " ]; then
     label="${rest%% *}"
-    text="${rest#* }"
+    text="${rest#"$label"}"
     text="${text#"${text%%[![:space:]]*}"}"
     ROW_DOMAIN+=("$current_domain")
     ROW_STATUS+=("$label")
     ROW_TEXT+=("$text")
   else
     text="${rest#"${rest%%[![:space:]]*}"}"
-    if [ ${#ROW_TEXT[@]} -gt 0 ]; then
+    if [ ${#ROW_TEXT[@]} -gt 0 ] && [ -n "$text" ]; then
       idx=$(( ${#ROW_TEXT[@]} - 1 ))
       ROW_TEXT[$idx]="${ROW_TEXT[$idx]} $text"
     fi
   fi
 done <<< "$report"
 
-# --- Overall result badge -------------------------------------------------------
-case "$result_line" in
-  *"all OK"*)      badge_class="status-ok";    badge_text="ALL OK" ;;
-  *"WARNINGS"*)    badge_class="status-warn";  badge_text="WARNINGS" ; exit_code=1 ;;
-  *"CRITICAL"*)    badge_class="status-alarm"; badge_text="CRITICAL" ; exit_code=2 ;;
-  *)               badge_class="status-warn";  badge_text="${result_line:-UNKNOWN}"; exit_code=3 ;;
-esac
-: "${exit_code:=0}"
+# --- Overall result badge: derived from the rows themselves ----------------------
+n_crit=0; n_warn=0
+for s in ${ROW_STATUS[@]+"${ROW_STATUS[@]}"}; do
+  case "${s^^}" in
+    CRITICAL|KRITISK) n_crit=$((n_crit+1)) ;;
+    WARNING|ADVARSEL) n_warn=$((n_warn+1)) ;;
+  esac
+done
+
+if   [ ${#ROW_STATUS[@]} -eq 0 ]; then badge_class="status-warn";  badge_text="UNKNOWN (no rows)";  exit_code=3
+elif [ "$n_crit" -gt 0 ];         then badge_class="status-alarm"; badge_text="CRITICAL ($n_crit)"; exit_code=2
+elif [ "$n_warn" -gt 0 ];         then badge_class="status-warn";  badge_text="WARNINGS ($n_warn)"; exit_code=1
+else                                   badge_class="status-ok";    badge_text="ALL OK";             exit_code=0
+fi
 
 generated="$(date '+%Y-%m-%d %H:%M %Z')"
 year="$(date '+%Y')"
-[ -n "$header_line" ] || header_line="DNS health check — $generated"
-timestamp="${header_line#DNS health check — }"
+if [ -n "$header_line" ] && [[ "$header_line" == *" — "* ]]; then
+  timestamp="${header_line#* — }"
+else
+  timestamp="$generated"
+fi
 resolver_text="${resolver_line#Resolver: }"
+[ -n "$resolver_text" ] || resolver_text="—"
 
-# --- Build HTML -------------------------------------------------------------------
+# --- Build HTML --------------------------------------------------------------------
 mkdir -p "$(dirname "$OUTFILE")"
-tmpfile="$(mktemp "${OUTFILE}.XXXXXX")"
+tmpfile="$(mktemp "${OUTFILE}.XXXXXX")" || { echo "ERROR: cannot create temp file next to $OUTFILE" >&2; exit 3; }
+trap 'rm -f "$tmpfile"' EXIT
 
 {
 cat <<HEADER
@@ -262,14 +272,14 @@ cat <<HEADER
       <tbody>
 HEADER
 
-for i in "${!ROW_DOMAIN[@]}"; do
+for i in ${ROW_DOMAIN[@]+"${!ROW_DOMAIN[@]}"}; do
   status="${ROW_STATUS[$i]}"
-  case "$status" in
-    ok)       row_class=""; cell_class="status-ok";    label_text="OK" ;;
-    WARNING)  row_class="warn";  cell_class="status-warn";  label_text="WARNING" ;;
-    CRITICAL) row_class="alarm"; cell_class="status-alarm"; label_text="CRITICAL" ;;
-    info)     row_class=""; cell_class="status-info";  label_text="INFO" ;;
-    *)        row_class=""; cell_class="status-info";  label_text="$(html_escape "$status")" ;;
+  case "${status^^}" in
+    OK)               row_class="";      cell_class="status-ok";    label_text="OK" ;;
+    WARNING|ADVARSEL) row_class="warn";  cell_class="status-warn";  label_text="WARNING" ;;
+    CRITICAL|KRITISK) row_class="alarm"; cell_class="status-alarm"; label_text="CRITICAL" ;;
+    INFO)             row_class="";      cell_class="status-info";  label_text="INFO" ;;
+    *)                row_class="";      cell_class="status-info";  label_text="$(html_escape "$status")" ;;
   esac
   printf '        <tr class="%s"><td>%s</td><td class="%s">%s</td><td>%s</td></tr>\n' \
     "$row_class" \
@@ -287,9 +297,10 @@ cat <<FOOTER
 </body>
 </html>
 FOOTER
-} > "$tmpfile"
+} > "$tmpfile" || { echo "ERROR: writing $tmpfile failed" >&2; exit 3; }
 
 chmod 644 "$tmpfile"
-mv "$tmpfile" "$OUTFILE"
+mv "$tmpfile" "$OUTFILE" || { echo "ERROR: cannot move report to $OUTFILE" >&2; exit 3; }
+trap - EXIT
 echo "Wrote $OUTFILE (${#ROW_DOMAIN[@]} rows, result: $badge_text)"
 exit "$exit_code"
